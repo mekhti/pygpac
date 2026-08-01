@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # Pinned to a codename GPAC's official APT repo actually supports
+    # (jammy/noble) rather than ubuntu-latest, which can drift ahead of
+    # what dist.gpac.io publishes - see docs/dev-environment.md for a
+    # concrete case where an unsupported codename broke this.
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GPAC (nightly, official APT repo)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates curl
+          sudo install -m 0755 -d /etc/apt/keyrings
+          sudo curl -fsSL https://dist.gpac.io/gpac/linux/gpg.asc -o /etc/apt/keyrings/gpac.asc
+          sudo chmod a+r /etc/apt/keyrings/gpac.asc
+          . /etc/os-release
+          {
+            echo "Types: deb"
+            echo "URIs: https://dist.gpac.io/gpac/linux/ubuntu"
+            echo "Suites: ${UBUNTU_CODENAME:-$VERSION_CODENAME}"
+            echo "Components: nightly"
+            echo "Signed-By: /etc/apt/keyrings/gpac.asc"
+          } | sudo tee /etc/apt/sources.list.d/gpac.sources
+          sudo apt-get update
+          sudo apt-get install -y gpac libgpac-dev
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pygpac (dev)
+        run: pip install -e ".[dev]"
+
+      - name: Run tests
+        run: pytest -v
