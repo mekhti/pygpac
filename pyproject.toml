@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pygpac"
+version = "0.1.0"
+description = "Independent Python bindings for libgpac (GPAC multimedia framework)"
+readme = "README.md"
+license = "LGPL-2.1-or-later"
+requires-python = ">=3.9"
+authors = [
+    { name = "Mehdi Mammadov", email = "mekhti@gmail.com" },
+]
+keywords = ["gpac", "libgpac", "multimedia", "filters", "mp4", "isobmff"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Multimedia :: Sound/Audio",
+]
+
+[project.urls]
+Homepage = "https://github.com/mekhti/pygpac"
+Repository = "https://github.com/mekhti/pygpac"
+Issues = "https://github.com/mekhti/pygpac/issues"
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pygpac"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
