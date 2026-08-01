@@ -44,8 +44,27 @@ gf_sys_init() -> 0 (0 == GF_OK)
 gf_sys_close() OK - smoke test passed
 ```
 
+## Running the package's test suite locally
+
+Once `libgpac` is built (see above) and the package is installed (`pip install -e ".[dev]"`), point `LD_LIBRARY_PATH` at the built library and run pytest:
+
+```sh
+LD_LIBRARY_PATH=/path/to/gpac_src/bin/gcc pytest -v
+```
+
+### Notes specific to a WSL2 + Windows-mounted-repo setup
+
+If the repository lives on the Windows filesystem and is accessed from WSL2 via `/mnt/c/...` (rather than natively inside the Linux filesystem), a few WSL2-specific quirks showed up during verification and are worth knowing about upfront:
+
+- A minimal WSL2 base image may be missing `python3-venv` (`python3 -m venv` fails with "ensurepip is not available") and `pip` itself (`python3 -m pip` -> "No module named pip"). Bootstrapping `pip` via `python3 get-pip.py --user --break-system-packages` (see [get-pip.py](https://bootstrap.pypa.io/get-pip.py)) works without root and without a venv.
+- Recent Debian/Ubuntu Python builds are "externally managed" (PEP 668) and refuse plain `pip install` outside a venv - `--break-system-packages` is required for a `--user` install if you don't want to set up a venv (which itself needs the missing `python3-venv` package, i.e. `sudo apt install python3-venv` first).
+- pytest may warn that it can't create its cache directory under `/mnt/c/...` (`Operation not permitted`) - this is a Windows/WSL9P filesystem permission quirk, not a real test failure; safe to ignore, or work around by keeping a clone of the repo inside the native Linux filesystem instead of `/mnt/c/...`.
+
 ## Status
 
-WBS item #1 (ADR-0001) is complete: environment set up, `libgpac` located and loaded, `gf_sys_init`/`gf_sys_close` round-trip verified via ctypes.
+WBS items #1 and #2 (ADR-0001) are complete:
 
-Next: WBS item #2 - package skeleton (`pyproject.toml`, `pytest`, basic CI).
+- environment set up, `libgpac` located and loaded, `gf_sys_init`/`gf_sys_close` round-trip verified via ctypes (item #1);
+- package skeleton (`pyproject.toml`, `src/pygpac/` with an isolated `_native.py` loading layer and ABI guard, `tests/`, GitHub Actions CI) in place and verified end-to-end against a real built `libgpac` - `pytest` passes 3/3 (item #2).
+
+Next: WBS item #3 - ctypes declarations for the filter session / filter / property functions, cross-checked against the official `libgpac.py` as a reference.
